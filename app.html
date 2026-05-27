@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager — Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+</head>
+<body>
+    <div id="notifications" aria-live="polite"></div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <button class="hamburger-btn" onclick="toggleNavMenu();" aria-label="Toggle Menu">
+                <span></span><span></span><span></span><span></span>
+            </button>
+
+            <div class="nav-logo">
+                <svg width="24" height="24" viewBox="0 0 28 28" fill="none" style="flex-shrink:0">
+                    <rect width="28" height="28" rx="7" fill="#4f46e5"/>
+                    <path d="M7 14l5 5 9-9" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Task Manager</span>
+            </div>
+
+            <div class="nav-menu" id="navMenu">
+                <a href="#" class="nav-link" onclick="showDashboard(); closeDropdowns(); closeNavMenu(); return false;">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="#" class="nav-link" onclick="showProjects(); closeDropdowns(); closeNavMenu(); return false;">
+                    <i class="fas fa-project-diagram"></i> Projects
+                </a>
+                <a href="#" class="nav-link" onclick="showTasks(); closeDropdowns(); closeNavMenu(); return false;">
+                    <i class="fas fa-list-check"></i> Tasks
+                </a>
+                <a href="#" class="nav-link" onclick="showKanban(); closeDropdowns(); closeNavMenu(); return false;">
+                    <i class="fas fa-columns"></i> Kanban
+                </a>
+            </div>
+
+            <div class="nav-right">
+                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+
+                <div class="nav-auth" id="navAuth" style="display: flex;">
+                    <button class="btn-login" onclick="showLogin()">Log in</button>
+                    <button class="btn-signup" onclick="showSignup()">Sign Up</button>
+                </div>
+
+                <div class="nav-profile-container" id="navProfileContainer" style="display: none;">
+                    <div class="nav-user" id="nav-profile" onclick="toggleProfileDropdown()" tabindex="0">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="user-name">User</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <div class="dropdown-header">
+                            <div id="dropdown-user-name"></div>
+                            <div id="dropdown-user-role">Admin</div>
+                        </div>
+                        <button onclick="showAccount(); closeDropdowns()">
+                            <i class="fas fa-user"></i> My Account
+                        </button>
+                        <button onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Auth Modal -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()" role="button" aria-label="Close">&times;</span>
+            <div id="loginForm">
+                <h2>Login</h2>
+                <form onsubmit="login(event)" novalidate>
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                    <button type="submit" class="btn-primary" id="loginBtn">Login</button>
+                </form>
+                <p>Don't have an account? <a href="#signupForm" onclick="showSignupForm(); return false;">Sign up</a></p>
+            </div>
+            <div id="signupForm" style="display: none;">
+                <h2>Sign Up</h2>
+                <form onsubmit="signup(event)" novalidate>
+                    <div class="form-group">
+                        <input type="text" id="signupName" placeholder="Full Name" required minlength="2" maxlength="60">
+                        <span class="error-message" id="signupNameError"></span>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="signupEmail" placeholder="Email" required>
+                        <span class="error-message" id="signupEmailError"></span>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="signupPassword" placeholder="Password" required minlength="6">
+                        <span class="error-message" id="signupPasswordError"></span>
+                    </div>
+                    <button type="submit" class="btn-primary" id="signupBtn">Sign Up</button>
+                </form>
+                <p>Already have an account? <a href="#loginForm" onclick="showLoginForm(); return false;">Login</a></p>
+            </div>
+        </div>
+    </div>
+
+    <main class="main-content">
+        <!-- Dashboard -->
+        <div id="dashboard" class="page active">
+            <div class="dashboard-header">
+                <h1>Dashboard</h1>
+                <div class="stats-grid">
+                    <div class="stat-card" data-tooltip="Total tasks across all projects">
+                        <i class="fas fa-tasks"></i>
+                        <div><h3 id="totalTasks">0</h3><span>Total Tasks</span></div>
+                    </div>
+                    <div class="stat-card bg-progress" data-tooltip="Currently in progress">
+                        <i class="fas fa-spinner"></i>
+                        <div><h3 id="inProgress">0</h3><span>In Progress</span></div>
+                    </div>
+                    <div class="stat-card bg-complete" data-tooltip="Successfully completed">
+                        <i class="fas fa-check-circle"></i>
+                        <div><h3 id="completed">0</h3><span>Completed</span></div>
+                    </div>
+                    <div class="stat-card bg-overdue" data-tooltip="Past due date">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div><h3 id="overdue">0</h3><span>Overdue</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>Tasks by Status</h3>
+                    <canvas id="statusChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Tasks by Priority</h3>
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+
+            <div class="tasks-grid">
+                <div class="tasks-section">
+                    <h3>Recent Tasks</h3>
+                    <div id="recentTasks" class="tasks-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects Page -->
+        <div id="projects" class="page">
+            <div class="page-header">
+                <div>
+                    <h1>Projects</h1>
+                    <div class="search-filter">
+                        <input type="text" id="projectsSearch" placeholder="Search projects...">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="showCreateProjectModal()">
+                    <i class="fas fa-plus"></i> New Project
+                </button>
+            </div>
+            <div id="projectsList" class="projects-grid"></div>
+        </div>
+
+        <!-- Tasks Page -->
+        <div id="tasks" class="page">
+            <div class="page-header">
+                <div>
+                    <h1>All Tasks</h1>
+                    <div class="search-filter">
+                        <input type="text" id="tasksSearch" placeholder="Search tasks...">
+                        <select id="tasksFilter">
+                            <option value="">All Status</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="COMPLETED">Completed</option>
+                        </select>
+                        <select id="priorityFilter">
+                            <option value="">All Priorities</option>
+                            <option value="LOW">Low</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="HIGH">High</option>
+                            <option value="URGENT">Urgent</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="showCreateTaskModal()">
+                    <i class="fas fa-plus"></i> New Task
+                </button>
+            </div>
+            <div id="tasksList" class="tasks-grid"></div>
+        </div>
+
+        <!-- Kanban Board -->
+        <div id="kanban" class="page">
+            <div class="page-header">
+                <h1>Kanban Board</h1>
+                <div class="kanban-controls">
+                    <button class="btn-primary" onclick="showCreateTaskModal()">
+                        <i class="fas fa-plus"></i> Add Task
+                    </button>
+                </div>
+            </div>
+            <div id="kanbanBoard" class="kanban-board"></div>
+        </div>
+
+        <!-- Project Details -->
+        <div id="projectDetails" class="page">
+            <div class="page-header">
+                <button class="btn-secondary" onclick="showProjects()">
+                    <i class="fas fa-arrow-left"></i> Back to Projects
+                </button>
+                <div class="project-actions">
+                    <button class="btn-primary" onclick="showEditProjectModal()">
+                        <i class="fas fa-edit"></i> Edit Project
+                    </button>
+                    <button class="btn-danger" onclick="confirmDeleteProject()">
+                        <i class="fas fa-trash"></i> Delete Project
+                    </button>
+                </div>
+            </div>
+            <div class="project-detail-header">
+                <h1 id="projectDetailTitle">Project Details</h1>
+                <p id="projectDetailDesc"></p>
+                <div class="project-meta">
+                    <span id="projectOwner"></span>
+                    <span id="projectMembers"></span>
+                </div>
+            </div>
+            <div class="page-header">
+                <h2>Project Tasks</h2>
+                <button class="btn-primary" onclick="showCreateTaskModal(currentProjectId)">
+                    <i class="fas fa-plus"></i> Add Task
+                </button>
+            </div>
+            <div id="projectTasksList" class="tasks-grid"></div>
+        </div>
+    </main>
+
+    <!-- Project Modal -->
+    <div class="modal" id="projectModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProjectModal()" role="button" aria-label="Close">&times;</span>
+            <h2 id="projectModalTitle">Create Project</h2>
+            <form id="projectForm" onsubmit="saveProject(event)" novalidate>
+                <input type="hidden" id="projectId">
+                <div class="form-group">
+                    <input type="text" id="projectName" placeholder="Project Name *" required maxlength="100" minlength="3">
+                    <span class="error-message" id="projectNameError"></span>
+                </div>
+                <div class="form-group">
+                    <textarea id="projectDesc" placeholder="Description (optional)" maxlength="500"></textarea>
+                </div>
+                <div class="action-buttons">
+                    <button type="submit" class="btn-primary" id="projectSaveBtn">Save Project</button>
+                    <button type="button" class="btn-secondary" onclick="closeProjectModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal" id="taskModal">
+        <div class="modal-content large">
+            <span class="close" onclick="closeTaskModal()" role="button" aria-label="Close">&times;</span>
+            <h2 id="taskModalTitle">Create Task</h2>
+            <form id="taskForm" onsubmit="saveTask(event)" novalidate>
+                <input type="hidden" id="taskId">
+                <input type="hidden" id="taskProjectId">
+                <div class="form-group">
+                    <input type="text" id="taskTitle" placeholder="Task Title *" required maxlength="100" minlength="3">
+                    <span class="error-message" id="taskTitleError"></span>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <select id="taskPriority" required>
+                            <option value="">Priority *</option>
+                            <option value="LOW">Low</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="HIGH">High</option>
+                            <option value="URGENT">Urgent</option>
+                        </select>
+                        <span class="error-message" id="taskPriorityError"></span>
+                    </div>
+                    <div class="form-group">
+                        <input type="date" id="taskDueDate">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <textarea id="taskDesc" placeholder="Description (optional)" maxlength="1000"></textarea>
+                </div>
+                <div class="form-row">
+                    <select id="taskStatus">
+                        <option value="PENDING">Pending</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="COMPLETED">Completed</option>
+                    </select>
+                    <select id="taskProject">
+                        <option value="">No Project</option>
+                    </select>
+                </div>
+                <div class="action-buttons">
+                    <button type="submit" class="btn-primary" id="taskSaveBtn">Save Task</button>
+                    <button type="button" class="btn-secondary" onclick="closeTaskModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeConfirmModal()" role="button" aria-label="Close">&times;</span>
+            <h2>Confirm Delete</h2>
+            <p id="confirmMessage">Are you sure?</p>
+            <div class="action-buttons">
+                <button class="btn-danger" id="confirmDeleteBtn">Yes, Delete</button>
+                <button class="btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <script src="/script.js"></script>
+</body>
+</html>

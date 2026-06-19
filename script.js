@@ -172,7 +172,7 @@ function login(event) {
   saveUserData();
   closeModal();
   notify('Logged in successfully!', 'success');
-  window.location.href="./app.html";
+  window.location.href="app.html";
   if (!isAppPage()) {
     window.location.href="#loginForm";
   } else {

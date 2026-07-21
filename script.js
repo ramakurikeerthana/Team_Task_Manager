@@ -216,9 +216,9 @@ function signup(event) {
 
   closeModal();
 notify('Account created successfully! Please login.', 'success');
-window.location.href = "/index.html#loginForm";
+window.location.href = "index.html#loginForm";
 if (!isAppPage()) {
-   window.location.href = "/index.html#loginForm";
+   window.location.href = "index.html#loginForm";
 }else {
     showProfile();
     updateDashboard();
@@ -925,15 +925,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // ADD THIS HERE
   window.addEventListener("load", () => {
     if (window.location.hash === "#loginForm") {
-      document.getElementById("authModal").style.display = "flex";
-      showLoginForm();
+        document.getElementById("authModal").classList.add("active");
+        showLoginForm();
     }
 
     if (window.location.hash === "#signupForm") {
-      document.getElementById("authModal").style.display = "flex";
-      showSignupForm();
+        document.getElementById("authModal").classList.add("active");
+        showSignupForm();
     }
-  });
+});
 /* expose globals needed by inline HTML handlers */
 window.login                 = login;
 window.signup                = signup;
